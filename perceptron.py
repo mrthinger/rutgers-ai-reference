@@ -12,12 +12,12 @@ HIDDEN_DIM = 1024
 class MultiLayerPerceptron(nn.Module):
     def __init__(self):
         super(MultiLayerPerceptron, self).__init__()
-
         self.hidden = nn.Linear(MNIST_UNROLLED_FEATURES, HIDDEN_DIM)
         self.out = nn.Linear(HIDDEN_DIM, 10)
 
     def forward(self, x: torch.Tensor):
         x = self.hidden(x)
+        x = F.relu(x)
         x = self.out(x)
         return x
 
@@ -32,23 +32,27 @@ if __name__ == "__main__":
     imgs, labels = load_data("digit", "train")
 
     imgs = torch.Tensor(imgs)
-    labels = torch.Tensor(labels).to(dtype=torch.uint8)
+    labels = torch.Tensor(labels).to(dtype=torch.long)
+    labels_one_hot =  F.one_hot(labels, num_classes=10).to(dtype=torch.float32)
 
     for i in range(EPOCHS):
-
         optimizer.zero_grad()
 
         x = imgs.reshape((imgs.shape[0], MNIST_UNROLLED_FEATURES))  # [n, 784]
         x = perceptron(x)  # [n, 10]
 
-        # probs
-        x = F.softmax(x, dim=-1)  # [n, 10]
+        # categorical loss (single class prediction)
+        # x = F.softmax(x, dim=-1)  # [n, 10]
+        # x = torch.log(x)
+        # loss = F.nll_loss(x, labels)
 
-        # log probs
-        x = torch.log(x)
 
-        # loss based on log probs vs class
-        loss = F.nll_loss(x, labels)
+        # mse loss (multi class prediction)
+        x = F.sigmoid(x)
+        # loss = F.mse_loss(x, labels_one_hot)
+        loss = torch.mean(torch.square(x - labels_one_hot)) 
+
+
         print(loss.detach().cpu().numpy())
 
         loss.backward()
