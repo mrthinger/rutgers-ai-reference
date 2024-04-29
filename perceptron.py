@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
 from data import load_data
 
 MNIST_UNROLLED_FEATURES = 28 * 28
@@ -33,7 +32,7 @@ if __name__ == "__main__":
 
     imgs = torch.Tensor(imgs)
     labels = torch.Tensor(labels).to(dtype=torch.long)
-    labels_one_hot =  F.one_hot(labels, num_classes=10).to(dtype=torch.float32)
+    labels_one_hot = F.one_hot(labels, num_classes=10).to(dtype=torch.float32)
 
     for i in range(EPOCHS):
         optimizer.zero_grad()
@@ -46,12 +45,10 @@ if __name__ == "__main__":
         # x = torch.log(x)
         # loss = F.nll_loss(x, labels)
 
-
         # mse loss (multi class prediction)
         x = F.sigmoid(x)
         # loss = F.mse_loss(x, labels_one_hot)
-        loss = torch.mean(torch.square(x - labels_one_hot)) 
-
+        loss = torch.mean(torch.square(x - labels_one_hot))
 
         print(loss.detach().cpu().numpy())
 
